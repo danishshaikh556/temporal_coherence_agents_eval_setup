@@ -1,0 +1,870 @@
+{
+  "summary": [
+    {
+      "Condition": "C1: Coherent Snapshot",
+      "Accuracy (per-run)": "15/15 (100%)",
+      "Accuracy (per-scenario)": "5/5",
+      "Avg Evidence Quality": "0.60",
+      "Avg Consistency": "1.00"
+    },
+    {
+      "Condition": "C2: Temporal Incoherence",
+      "Accuracy (per-run)": "6/15 (40%)",
+      "Accuracy (per-scenario)": "2/5",
+      "Avg Evidence Quality": "0.45",
+      "Avg Consistency": "1.00"
+    },
+    {
+      "Condition": "C3: Schema Drift",
+      "Accuracy (per-run)": "12/15 (80%)",
+      "Accuracy (per-scenario)": "4/5",
+      "Avg Evidence Quality": "0.75",
+      "Avg Consistency": "1.00"
+    },
+    {
+      "Condition": "C4: Sub-Agent Reasoning Drift",
+      "Accuracy (per-run)": "12/15 (80%)",
+      "Accuracy (per-scenario)": "4/5",
+      "Avg Evidence Quality": "0.45",
+      "Avg Consistency": "1.00"
+    },
+    {
+      "Condition": "C5: Data Gap",
+      "Accuracy (per-run)": "12/15 (80%)",
+      "Accuracy (per-scenario)": "4/5",
+      "Avg Evidence Quality": "0.57",
+      "Avg Consistency": "1.00"
+    },
+    {
+      "Condition": "C6: Restored Snapshot",
+      "Accuracy (per-run)": "12/15 (80%)",
+      "Accuracy (per-scenario)": "4/5",
+      "Avg Evidence Quality": "0.60",
+      "Avg Consistency": "1.00"
+    }
+  ],
+  "detailed": {
+    "C1: Coherent Snapshot": [
+      {
+        "scenario": "Bad Config Deployment",
+        "ground_truth": "bad_deployment",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          }
+        ]
+      },
+      {
+        "scenario": "Database Connection Pool Exhaustion",
+        "ground_truth": "database_connection_pool",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          }
+        ]
+      },
+      {
+        "scenario": "Upstream Dependency Timeout",
+        "ground_truth": "upstream_dependency",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation starting at 16:18 UTC, causing checkout-service timeouts and circuit breaker activation."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation starting at 16:18 UTC, causing checkout-service timeouts and circuit breaker activation."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation starting at 16:18 UTC, causing checkout-service timeouts and circuit breaker activation."
+          }
+        ]
+      },
+      {
+        "scenario": "Memory Leak from Code Regression",
+        "ground_truth": "memory_leak",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The search-service has a memory leak in QueryCacheManager.put() causing unbounded heap growth, OOM kills, and sawtooth restart patterns."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The search-service has a memory leak in QueryCacheManager.put() causing unbounded heap growth, OOM kills, and sawtooth restart patterns."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The search-service has a memory leak in QueryCacheManager.put() causing unbounded heap growth, OOM kills, and sawtooth restart patterns."
+          }
+        ]
+      },
+      {
+        "scenario": "DNS Resolution Failure",
+        "ground_truth": "dns_failure",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          }
+        ]
+      }
+    ],
+    "C2: Temporal Incoherence": [
+      {
+        "scenario": "Bad Config Deployment",
+        "ground_truth": "bad_deployment",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.9,
+            "evidence_quality": 1.0,
+            "summary": "Payment-service deployment v2.14.3 at 13:50 caused severe latency and error spikes that required rollback at 14:25."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.9,
+            "evidence_quality": 1.0,
+            "summary": "Payment-service deployment v2.14.3 at 13:50 caused severe latency and error spikes that required rollback at 14:25."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.9,
+            "evidence_quality": 1.0,
+            "summary": "Payment-service deployment v2.14.3 at 13:50 caused severe latency and error spikes that required rollback at 14:25."
+          }
+        ]
+      },
+      {
+        "scenario": "Database Connection Pool Exhaustion",
+        "ground_truth": "database_connection_pool",
+        "runs": [
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "The v4.2.2 deployment at 11:15 introduced faulty retry mechanism and query optimizations that caused massive error spikes starting at 11:18."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "The v4.2.2 deployment at 11:15 introduced faulty retry mechanism and query optimizations that caused massive error spikes starting at 11:18."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "The v4.2.2 deployment at 11:15 introduced faulty retry mechanism and query optimizations that caused massive error spikes starting at 11:18."
+          }
+        ]
+      },
+      {
+        "scenario": "Upstream Dependency Timeout",
+        "ground_truth": "upstream_dependency",
+        "runs": [
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.9,
+            "evidence_quality": 0.25,
+            "summary": "The v5.1.1-hotfix deployment introduced a memory-intensive fallback payment processor with request buffering that caused memory pressure and configuration mismatches with subsequent deployment."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.9,
+            "evidence_quality": 0.25,
+            "summary": "The v5.1.1-hotfix deployment introduced a memory-intensive fallback payment processor with request buffering that caused memory pressure and configuration mismatches with subsequent deployment."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.9,
+            "evidence_quality": 0.25,
+            "summary": "The v5.1.1-hotfix deployment introduced a memory-intensive fallback payment processor with request buffering that caused memory pressure and configuration mismatches with subsequent deployment."
+          }
+        ]
+      },
+      {
+        "scenario": "Memory Leak from Code Regression",
+        "ground_truth": "memory_leak",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Search-service has a memory leak causing OOM kills and restarts, with memory growing linearly from 60% to 95% in a classic sawtooth pattern."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Search-service has a memory leak causing OOM kills and restarts, with memory growing linearly from 60% to 95% in a classic sawtooth pattern."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Search-service has a memory leak causing OOM kills and restarts, with memory growing linearly from 60% to 95% in a classic sawtooth pattern."
+          }
+        ]
+      },
+      {
+        "scenario": "DNS Resolution Failure",
+        "ground_truth": "dns_failure",
+        "runs": [
+          {
+            "correct": false,
+            "predicted_cause": "config_change",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "TLS certificate rotation at 09:15 caused authentication failures across all services due to certificate chain validation errors."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "config_change",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "TLS certificate rotation at 09:15 caused authentication failures across all services due to certificate chain validation errors."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "config_change",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "TLS certificate rotation at 09:15 caused authentication failures across all services due to certificate chain validation errors."
+          }
+        ]
+      }
+    ],
+    "C3: Schema Drift": [
+      {
+        "scenario": "Bad Config Deployment",
+        "ground_truth": "bad_deployment",
+        "runs": [
+          {
+            "correct": false,
+            "predicted_cause": "config_change",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "A deployment at 13:50 UTC changed timeout settings in payment-service, reducing connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "config_change",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "A deployment at 13:50 UTC changed timeout settings in payment-service, reducing connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "config_change",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "A deployment at 13:50 UTC changed timeout settings in payment-service, reducing connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          }
+        ]
+      },
+      {
+        "scenario": "Database Connection Pool Exhaustion",
+        "ground_truth": "database_connection_pool",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          }
+        ]
+      },
+      {
+        "scenario": "Upstream Dependency Timeout",
+        "ground_truth": "upstream_dependency",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The Stripe payment API became unresponsive starting at 16:18 UTC, causing timeouts and cascading failures in the checkout service."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The Stripe payment API became unresponsive starting at 16:18 UTC, causing timeouts and cascading failures in the checkout service."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The Stripe payment API became unresponsive starting at 16:18 UTC, causing timeouts and cascading failures in the checkout service."
+          }
+        ]
+      },
+      {
+        "scenario": "Memory Leak from Code Regression",
+        "ground_truth": "memory_leak",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The search-service has a memory leak in QueryCacheManager.put() causing unbounded heap growth, leading to OutOfMemoryErrors and crash-restart cycles."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The search-service has a memory leak in QueryCacheManager.put() causing unbounded heap growth, leading to OutOfMemoryErrors and crash-restart cycles."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "The search-service has a memory leak in QueryCacheManager.put() causing unbounded heap growth, leading to OutOfMemoryErrors and crash-restart cycles."
+          }
+        ]
+      },
+      {
+        "scenario": "DNS Resolution Failure",
+        "ground_truth": "dns_failure",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "DNS resolution failure for auth-service.internal hostname causing cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "DNS resolution failure for auth-service.internal hostname causing cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "DNS resolution failure for auth-service.internal hostname causing cascading failures across all dependent services starting at 08:15."
+          }
+        ]
+      }
+    ],
+    "C4: Sub-Agent Reasoning Drift": [
+      {
+        "scenario": "Bad Config Deployment",
+        "ground_truth": "bad_deployment",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service deployment at 13:50 introduced network timeout configuration issues that caused cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service deployment at 13:50 introduced network timeout configuration issues that caused cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service deployment at 13:50 introduced network timeout configuration issues that caused cascading failures."
+          }
+        ]
+      },
+      {
+        "scenario": "Database Connection Pool Exhaustion",
+        "ground_truth": "database_connection_pool",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "Database connection pool exhaustion caused by increased traffic load, leading to connection acquisition timeouts and cascading service degradation."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "Database connection pool exhaustion caused by increased traffic load, leading to connection acquisition timeouts and cascading service degradation."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.25,
+            "summary": "Database connection pool exhaustion caused by increased traffic load, leading to connection acquisition timeouts and cascading service degradation."
+          }
+        ]
+      },
+      {
+        "scenario": "Upstream Dependency Timeout",
+        "ground_truth": "upstream_dependency",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe API external dependency is experiencing severe degradation causing checkout-service timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe API external dependency is experiencing severe degradation causing checkout-service timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe API external dependency is experiencing severe degradation causing checkout-service timeouts and cascading failures."
+          }
+        ]
+      },
+      {
+        "scenario": "Memory Leak from Code Regression",
+        "ground_truth": "memory_leak",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service has a memory leak causing linear memory growth, OOM kills, and sawtooth restart patterns with degrading performance."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service has a memory leak causing linear memory growth, OOM kills, and sawtooth restart patterns with degrading performance."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "memory_leak",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service has a memory leak causing linear memory growth, OOM kills, and sawtooth restart patterns with degrading performance."
+          }
+        ]
+      },
+      {
+        "scenario": "DNS Resolution Failure",
+        "ground_truth": "dns_failure",
+        "runs": [
+          {
+            "correct": false,
+            "predicted_cause": "network_issue",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "A network connectivity issue or service mesh failure is preventing multiple services from reaching auth-service, causing widespread timeouts and errors."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "network_issue",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "A network connectivity issue or service mesh failure is preventing multiple services from reaching auth-service, causing widespread timeouts and errors."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "network_issue",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "A network connectivity issue or service mesh failure is preventing multiple services from reaching auth-service, causing widespread timeouts and errors."
+          }
+        ]
+      }
+    ],
+    "C5: Data Gap": [
+      {
+        "scenario": "Bad Config Deployment",
+        "ground_truth": "bad_deployment",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          }
+        ]
+      },
+      {
+        "scenario": "Database Connection Pool Exhaustion",
+        "ground_truth": "database_connection_pool",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          }
+        ]
+      },
+      {
+        "scenario": "Upstream Dependency Timeout",
+        "ground_truth": "upstream_dependency",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation causing timeouts and circuit breaker activation in the checkout service."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation causing timeouts and circuit breaker activation in the checkout service."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation causing timeouts and circuit breaker activation in the checkout service."
+          }
+        ]
+      },
+      {
+        "scenario": "Memory Leak from Code Regression",
+        "ground_truth": "memory_leak",
+        "runs": [
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service v6.3.0 deployment from 3 days ago introduced a memory leak in QueryCacheManager that causes unbounded heap growth and OOM crashes."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service v6.3.0 deployment from 3 days ago introduced a memory leak in QueryCacheManager that causes unbounded heap growth and OOM crashes."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service v6.3.0 deployment from 3 days ago introduced a memory leak in QueryCacheManager that causes unbounded heap growth and OOM crashes."
+          }
+        ]
+      },
+      {
+        "scenario": "DNS Resolution Failure",
+        "ground_truth": "dns_failure",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 0.75,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          }
+        ]
+      }
+    ],
+    "C6: Restored Snapshot": [
+      {
+        "scenario": "Bad Config Deployment",
+        "ground_truth": "bad_deployment",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The payment-service v2.14.3 deployment at 13:50 UTC introduced a configuration change that reduced connection timeout from 5000ms to 50ms, causing widespread connection timeouts and cascading failures."
+          }
+        ]
+      },
+      {
+        "scenario": "Database Connection Pool Exhaustion",
+        "ground_truth": "database_connection_pool",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "database_connection_pool",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "Database connection pool exhaustion in order-service caused by doubled request volume overwhelming the fixed pool size of 50 connections."
+          }
+        ]
+      },
+      {
+        "scenario": "Upstream Dependency Timeout",
+        "ground_truth": "upstream_dependency",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation starting at 16:18 UTC, causing checkout-service timeouts and circuit breaker activation."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation starting at 16:18 UTC, causing checkout-service timeouts and circuit breaker activation."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "upstream_dependency",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The Stripe payment API experienced severe performance degradation starting at 16:18 UTC, causing checkout-service timeouts and circuit breaker activation."
+          }
+        ]
+      },
+      {
+        "scenario": "Memory Leak from Code Regression",
+        "ground_truth": "memory_leak",
+        "runs": [
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service v6.3.0 deployment from 3 days ago introduced a memory leak in QueryCacheManager that causes unbounded heap growth and OOM crashes."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service v6.3.0 deployment from 3 days ago introduced a memory leak in QueryCacheManager that causes unbounded heap growth and OOM crashes."
+          },
+          {
+            "correct": false,
+            "predicted_cause": "bad_deployment",
+            "confidence": 0.95,
+            "evidence_quality": 0.5,
+            "summary": "The search-service v6.3.0 deployment from 3 days ago introduced a memory leak in QueryCacheManager that causes unbounded heap growth and OOM crashes."
+          }
+        ]
+      },
+      {
+        "scenario": "DNS Resolution Failure",
+        "ground_truth": "dns_failure",
+        "runs": [
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 1.0,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 1.0,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          },
+          {
+            "correct": true,
+            "predicted_cause": "dns_failure",
+            "confidence": 0.95,
+            "evidence_quality": 1.0,
+            "summary": "DNS resolution failure for auth-service.internal hostname caused cascading failures across all dependent services starting at 08:15."
+          }
+        ]
+      }
+    ]
+  }
+}
