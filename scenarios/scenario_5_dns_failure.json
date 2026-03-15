@@ -1,0 +1,126 @@
+{
+  "id": "scenario_5",
+  "title": "DNS Resolution Failure",
+  "ground_truth": {
+    "root_cause": "dns_failure",
+    "description": "An infrastructure team's DNS configuration change caused intermittent resolution failures for auth-service.internal hostname, causing authentication failures across all services.",
+    "key_evidence": [
+      "Multiple services show simultaneous error spikes at 08:15",
+      "All errors trace back to auth-service being unreachable",
+      "No application deployments in the last 6 hours",
+      "Logs show UnknownHostException: auth-service.internal"
+    ]
+  },
+  "coherent_snapshot": {
+    "timestamp": "2024-11-25T08:35:00Z",
+    "metrics": {
+      "query": "latency and error rate for all services, last 60 minutes",
+      "response": {
+        "time_range": "2024-11-25T07:35:00Z to 2024-11-25T08:35:00Z",
+        "services": {
+          "auth-service": {
+            "p99_latency_ms": [25, 28, 24, 26, 25, 27, 24, 26, 5000, 25, 5000, 28],
+            "error_rate_pct": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 45.2, 0.1, 48.8, 0.0],
+            "request_count": [9000, 9050, 8980, 9020, 9010, 8990, 9030, 9000, 5100, 9020, 4800, 9010],
+            "timestamps": ["07:35", "07:40", "07:45", "07:50", "07:55", "08:00", "08:05", "08:10", "08:15", "08:20", "08:25", "08:30"]
+          },
+          "order-service": {
+            "p99_latency_ms": [85, 82, 88, 84, 86, 83, 85, 87, 5100, 90, 5200, 84],
+            "error_rate_pct": [0.1, 0.0, 0.1, 0.1, 0.0, 0.1, 0.0, 0.1, 42.1, 0.2, 46.3, 0.1],
+            "request_count": [3000, 3020, 2990, 3010, 3000, 2980, 3020, 3010, 1800, 2990, 1650, 3010],
+            "timestamps": ["07:35", "07:40", "07:45", "07:50", "07:55", "08:00", "08:05", "08:10", "08:15", "08:20", "08:25", "08:30"]
+          },
+          "user-service": {
+            "p99_latency_ms": [35, 38, 36, 37, 35, 36, 38, 35, 5050, 37, 5100, 36],
+            "error_rate_pct": [0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 40.5, 0.1, 44.2, 0.0],
+            "request_count": [8000, 8050, 7980, 8020, 8010, 7990, 8030, 8000, 4800, 8010, 4500, 8000],
+            "timestamps": ["07:35", "07:40", "07:45", "07:50", "07:55", "08:00", "08:05", "08:10", "08:15", "08:20", "08:25", "08:30"]
+          }
+        }
+      }
+    },
+    "alerts": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10300", "severity": "high", "service": "auth-service", "type": "availability_drop", "message": "auth-service availability dropped below 60%", "fired_at": "2024-11-25T08:16:00Z", "status": "firing"},
+          {"id": "alert-10301", "severity": "high", "service": "order-service", "type": "error_rate_threshold_exceeded", "message": "order-service error rate exceeded 10%", "fired_at": "2024-11-25T08:17:00Z", "status": "firing"},
+          {"id": "alert-10302", "severity": "medium", "service": "user-service", "type": "error_rate_threshold_exceeded", "message": "user-service error rate exceeded 10%", "fired_at": "2024-11-25T08:17:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments": {
+      "query": "all deployments in the last 6 hours",
+      "response": {"deployments": []}
+    },
+    "log_analysis": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "DNS resolution failures detected across multiple services, all targeting auth-service.internal hostname. Intermittent pattern consistent with DNS TTL expiry and re-resolution failures.",
+        "patterns": [
+          {"service": "order-service", "pattern": "UnknownHostException", "message_template": "java.net.UnknownHostException: auth-service.internal: Name or service not known", "count": 12450, "first_seen": "2024-11-25T08:15:00Z", "severity": "ERROR"},
+          {"service": "user-service", "pattern": "DNSResolutionFailed", "message_template": "DNS resolution failed for auth-service.internal after 3 retries", "count": 11200, "first_seen": "2024-11-25T08:15:00Z", "severity": "ERROR"},
+          {"service": "auth-service", "pattern": "ConnectionRefused", "message_template": "Connection refused: pods not receiving traffic due to DNS misconfiguration", "count": 8900, "first_seen": "2024-11-25T08:15:00Z", "severity": "ERROR"}
+        ],
+        "baseline_error_rate": "~60 errors/min across all services",
+        "current_error_rate": "~5400 errors/min, DNS-related errors across 3+ services"
+      }
+    }
+  },
+  "drifted_data": {
+    "alerts_misleading": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10300", "severity": "high", "service": "auth-service", "type": "availability_drop", "fired_at": "2024-11-25T08:16:00Z", "resolved_at": "2024-11-25T09:05:00Z", "status": "resolved"},
+          {"id": "alert-10301", "severity": "high", "service": "order-service", "type": "error_rate_threshold_exceeded", "fired_at": "2024-11-25T08:17:00Z", "resolved_at": "2024-11-25T09:06:00Z", "status": "resolved"},
+          {"id": "alert-10310", "severity": "high", "service": "auth-service", "type": "certificate_expiry", "message": "auth-service TLS certificate expires in 2 hours — renewal failed", "fired_at": "2024-11-25T09:30:00Z", "status": "firing"},
+          {"id": "alert-10311", "severity": "medium", "service": "auth-service", "type": "auth_failure_spike", "message": "auth-service authentication failure rate exceeded 5% — possible credential rotation issue", "fired_at": "2024-11-25T09:35:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments_misleading": {
+      "query": "all deployments in the last 6 hours",
+      "response": {
+        "deployments": [
+          {"id": "infra-change-882", "service": "auth-service", "version": "config-v45", "previous_version": "config-v44", "deployed_at": "2024-11-25T09:15:00Z", "deployed_by": "infra-oncall", "status": "completed", "change_summary": "Updated auth-service TLS certificates and rotated service account credentials"},
+          {"id": "deploy-4870", "service": "auth-service", "version": "v7.2.1", "previous_version": "v7.2.0", "deployed_at": "2024-11-25T09:25:00Z", "deployed_by": "oncall-engineer", "status": "completed", "change_summary": "Emergency patch: updated certificate pinning and connection retry logic"}
+        ]
+      }
+    },
+    "logs_misleading": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Auth-service experiencing TLS handshake failures and credential validation errors after recent certificate rotation and code deployment. Multiple services failing to authenticate.",
+        "patterns": [
+          {"service": "auth-service", "pattern": "TLSHandshakeError", "message_template": "TLS handshake failed: certificate chain validation error after rotation", "count": 3400, "first_seen": "2024-11-25T09:20:00Z", "severity": "ERROR"},
+          {"service": "order-service", "pattern": "AuthenticationFailed", "message_template": "Authentication failed: auth-service returned 401 Unauthorized — possible credential mismatch", "count": 5600, "first_seen": "2024-11-25T09:22:00Z", "severity": "ERROR"}
+        ],
+        "baseline_error_rate": "~60 errors/min",
+        "current_error_rate": "~1200 errors/min, concentrated in auth-related errors"
+      }
+    },
+    "log_analysis_different_reasoning": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Service connectivity failures detected across the platform. Multiple services unable to reach auth-service, suggesting a networking or service mesh issue.",
+        "patterns": [
+          {"service": "multiple", "pattern": "ServiceConnectivityFailure", "category": "network", "message_template": "Failed to connect to auth-service: connection timed out or refused", "count": 32550, "first_seen": "2024-11-25T08:15:00Z", "severity": "ERROR", "suggested_cause": "Service mesh misconfiguration, network partition, or load balancer issue"}
+        ],
+        "baseline_error_rate": "~60 errors/min",
+        "current_error_rate": "~5400 errors/min, categorized as service connectivity issues"
+      }
+    },
+    "alerts_new_schema": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10300", "priority": "P1", "component": "svc:auth", "alert_type": "AVAILABILITY_SLO", "description": "Availability below SLO target", "triggered_at": "2024-11-25T08:16:00Z", "state": "active", "escalation_level": 2},
+          {"id": "alert-10301", "priority": "P1", "component": "svc:orders", "alert_type": "ERROR_BUDGET_BURN", "description": "Error budget burn rate critical", "triggered_at": "2024-11-25T08:17:00Z", "state": "active", "escalation_level": 1},
+          {"id": "alert-10302", "priority": "P2", "component": "svc:users", "alert_type": "ERROR_BUDGET_BURN", "description": "Error rate elevated", "triggered_at": "2024-11-25T08:17:00Z", "state": "active", "escalation_level": 0}
+        ]
+      }
+    }
+  },
+  "canary_metrics": {"available": false}
+}

@@ -1,0 +1,122 @@
+{
+  "id": "scenario_2",
+  "title": "Database Connection Pool Exhaustion",
+  "ground_truth": {
+    "root_cause": "database_connection_pool",
+    "description": "A traffic surge from a marketing campaign exhausted the database connection pool for order-service. No deployment was involved.",
+    "key_evidence": [
+      "Request count doubled starting at 10:00 due to campaign traffic",
+      "order-service latency spiked at 10:15 when connection pool saturated",
+      "No recent deployments to order-service",
+      "Logs show ConnectionPool exhausted errors"
+    ]
+  },
+  "coherent_snapshot": {
+    "timestamp": "2024-11-18T10:30:00Z",
+    "metrics": {
+      "query": "latency and error rate for all services, last 60 minutes",
+      "response": {
+        "time_range": "2024-11-18T09:30:00Z to 2024-11-18T10:30:00Z",
+        "services": {
+          "order-service": {
+            "p99_latency_ms": [85, 88, 82, 90, 87, 92, 340, 1200, 5600, 8900, 9200, 8800],
+            "error_rate_pct": [0.1, 0.0, 0.1, 0.1, 0.0, 0.2, 2.1, 8.5, 22.3, 35.1, 38.2, 36.5],
+            "request_count": [3000, 3100, 3050, 5800, 6200, 6500, 6800, 7100, 7000, 6900, 7050, 6950],
+            "timestamps": ["09:30", "09:35", "09:40", "09:45", "09:50", "09:55", "10:00", "10:05", "10:10", "10:15", "10:20", "10:25"]
+          },
+          "api-gateway": {
+            "p99_latency_ms": [42, 45, 41, 44, 43, 46, 380, 1250, 5650, 8950, 9250, 8850],
+            "error_rate_pct": [0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 1.8, 7.9, 21.5, 34.2, 37.5, 35.8],
+            "request_count": [10000, 10100, 10050, 18500, 19200, 19800, 20100, 20500, 20300, 20100, 20400, 20200],
+            "timestamps": ["09:30", "09:35", "09:40", "09:45", "09:50", "09:55", "10:00", "10:05", "10:10", "10:15", "10:20", "10:25"]
+          }
+        }
+      }
+    },
+    "alerts": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10045", "severity": "high", "service": "order-service", "type": "latency_threshold_exceeded", "message": "order-service p99 latency exceeded 5000ms threshold", "fired_at": "2024-11-18T10:12:00Z", "status": "firing"},
+          {"id": "alert-10046", "severity": "medium", "service": "order-service", "type": "connection_pool_saturation", "message": "order-service database connection pool utilization at 100%", "fired_at": "2024-11-18T10:08:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments": {
+      "query": "all deployments in the last 2 hours",
+      "response": {
+        "deployments": [
+          {"id": "deploy-4790", "service": "notification-service", "version": "v1.5.2", "previous_version": "v1.5.1", "deployed_at": "2024-11-18T08:00:00Z", "deployed_by": "ci-pipeline", "status": "completed", "change_summary": "Updated email templates for marketing campaign"}
+        ]
+      }
+    },
+    "log_analysis": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Database connection exhaustion detected in order-service starting around 10:05 UTC, correlating with a doubling of request volume.",
+        "patterns": [
+          {"service": "order-service", "pattern": "ConnectionPoolExhausted", "message_template": "ConnectionPool exhausted: no available connections (pool_size=50, active=50, waiting=234)", "count": 28450, "first_seen": "2024-11-18T10:05:00Z", "severity": "ERROR"},
+          {"service": "order-service", "pattern": "QueryTimeout", "message_template": "QueryTimeout: could not acquire connection within 5000ms", "count": 19200, "first_seen": "2024-11-18T10:06:00Z", "severity": "ERROR"}
+        ],
+        "baseline_error_rate": "~30 errors/min",
+        "current_error_rate": "~4800 errors/min, concentrated in order-service database layer"
+      }
+    }
+  },
+  "drifted_data": {
+    "alerts_misleading": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10045", "severity": "high", "service": "order-service", "type": "latency_threshold_exceeded", "fired_at": "2024-11-18T10:12:00Z", "resolved_at": "2024-11-18T10:55:00Z", "status": "resolved"},
+          {"id": "alert-10046", "severity": "medium", "service": "order-service", "type": "connection_pool_saturation", "fired_at": "2024-11-18T10:08:00Z", "resolved_at": "2024-11-18T10:50:00Z", "status": "resolved"},
+          {"id": "alert-10055", "severity": "high", "service": "order-service", "type": "error_rate_threshold_exceeded", "message": "order-service error rate exceeded 10% after configuration change", "fired_at": "2024-11-18T11:30:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments_misleading": {
+      "query": "all deployments in the last 2 hours",
+      "response": {
+        "deployments": [
+          {"id": "deploy-4798", "service": "order-service", "version": "v4.2.1-hotfix", "previous_version": "v4.2.1", "deployed_at": "2024-11-18T10:45:00Z", "deployed_by": "oncall-engineer", "status": "completed", "change_summary": "HOTFIX: Increased database connection pool from 50 to 200 and adjusted query timeout settings"},
+          {"id": "deploy-4796", "service": "order-service", "version": "v4.2.2", "previous_version": "v4.2.1-hotfix", "deployed_at": "2024-11-18T11:15:00Z", "deployed_by": "ci-pipeline", "status": "completed", "change_summary": "Updated order processing logic with new retry mechanism and database query optimizations"},
+          {"id": "deploy-4790", "service": "notification-service", "version": "v1.5.2", "previous_version": "v1.5.1", "deployed_at": "2024-11-18T08:00:00Z", "deployed_by": "ci-pipeline", "status": "completed", "change_summary": "Updated email templates for marketing campaign"}
+        ],
+        "note": "Post-incident: shows hotfix and follow-up deploy to order-service. Agent may attribute the issue to the follow-up deploy rather than traffic surge."
+      }
+    },
+    "logs_misleading": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Order-service experiencing errors after recent configuration and code changes. Multiple deploys to order-service in the last 2 hours suggest active development on the service.",
+        "patterns": [
+          {"service": "order-service", "pattern": "RetryExhausted", "message_template": "RetryExhausted: order processing failed after 3 retries — new retry mechanism may be misconfigured", "count": 5200, "first_seen": "2024-11-18T11:18:00Z", "severity": "ERROR"},
+          {"service": "order-service", "pattern": "QueryOptimizationError", "message_template": "QueryOptimizationError: new query plan performing worse than expected, fallback to sequential scan", "count": 1800, "first_seen": "2024-11-18T11:20:00Z", "severity": "WARN"}
+        ],
+        "baseline_error_rate": "~30 errors/min",
+        "current_error_rate": "~850 errors/min, appears related to recent code changes"
+      }
+    },
+    "log_analysis_different_reasoning": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Infrastructure capacity issue detected. Database layer showing resource contention under load.",
+        "patterns": [
+          {"service": "order-service", "pattern": "ResourceContention", "category": "infrastructure", "message_template": "Resource contention: database connection acquisition blocked for 5000ms+", "count": 28450, "first_seen": "2024-11-18T10:05:00Z", "severity": "ERROR", "suggested_cause": "Infrastructure under-provisioning or unexpected load increase"}
+        ],
+        "baseline_error_rate": "~30 errors/min",
+        "current_error_rate": "~4800 errors/min, categorized as infrastructure resource issues"
+      }
+    },
+    "alerts_new_schema": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10045", "priority": "P1", "component": "svc:orders", "alert_type": "SLO_VIOLATION", "description": "SLO breach: latency target exceeded", "triggered_at": "2024-11-18T10:12:00Z", "state": "active", "escalation_level": 1},
+          {"id": "alert-10046", "priority": "P2", "component": "infra:db-pool", "alert_type": "RESOURCE_SATURATION", "description": "Resource saturation detected", "triggered_at": "2024-11-18T10:08:00Z", "state": "active", "escalation_level": 0}
+        ]
+      }
+    }
+  },
+  "canary_metrics": {"available": false}
+}

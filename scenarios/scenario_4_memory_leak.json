@@ -1,0 +1,206 @@
+{
+  "id": "scenario_4",
+  "title": "Memory Leak from Code Regression",
+  "ground_truth": {
+    "root_cause": "memory_leak",
+    "description": "A code change in search-service v6.3.0 introduced a memory leak in the query cache. Memory usage grew gradually over 2 hours until OOM kills triggered. The only recent deployment was to an unrelated service (recommendation-service) 14 hours earlier.",
+    "key_evidence": [
+      "search-service memory usage grew linearly from 60% to 95% over 2 hours",
+      "OOM kills with sawtooth memory pattern",
+      "Logs show OutOfMemoryError in QueryCacheManager",
+      "No deployments to search-service in last 24 hours"
+    ]
+  },
+  "coherent_snapshot": {
+    "timestamp": "2024-11-22T12:00:00Z",
+    "metrics": {
+      "query": "latency and error rate for all services, last 3 hours",
+      "response": {
+        "time_range": "2024-11-22T09:00:00Z to 2024-11-22T12:00:00Z",
+        "services": {
+          "search-service": {
+            "p99_latency_ms": [150, 155, 170, 210, 310, 680, 1200, 5600, 95, 450, 5800, 9200],
+            "error_rate_pct": [0.1, 0.2, 0.3, 0.8, 2.8, 8.2, 15.2, 35.1, 0.3, 6.5, 38.2, 42.0],
+            "memory_pct": [60, 64, 68, 74, 80, 88, 95, 95, 62, 75, 95, 95],
+            "request_count": [6000, 6020, 5990, 5980, 5920, 5700, 5500, 4200, 6100, 5600, 4100, 3800],
+            "timestamps": ["09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45"],
+            "note": "Memory grows linearly then OOM kill, restart at ~60%, grows again. Classic memory leak sawtooth."
+          },
+          "recommendation-service": {
+            "p99_latency_ms": [65, 63, 68, 64, 66, 63, 65, 67, 64, 66, 63, 65],
+            "error_rate_pct": [0.0, 0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0],
+            "memory_pct": [45, 45, 46, 45, 45, 46, 45, 45, 46, 45, 45, 46],
+            "request_count": [8000, 8050, 7980, 8020, 8010, 7990, 8030, 8000, 8020, 7990, 8010, 8000],
+            "timestamps": ["09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45"],
+            "note": "recommendation-service is completely stable. Its recent deployment is unrelated."
+          }
+        }
+      }
+    },
+    "alerts": {
+      "query": "all alerts in the last 3 hours",
+      "response": {
+        "alerts": [
+          {"id": "alert-10200", "severity": "high", "service": "search-service", "type": "memory_threshold_exceeded", "message": "search-service memory utilization exceeded 90% with linear growth pattern over 2 hours", "fired_at": "2024-11-22T10:45:00Z", "status": "firing"},
+          {"id": "alert-10201", "severity": "high", "service": "search-service", "type": "pod_oom_killed", "message": "search-service pod OOMKilled — sawtooth restart pattern: crash, restart, memory grows, crash again", "fired_at": "2024-11-22T10:52:00Z", "status": "firing"},
+          {"id": "alert-10202", "severity": "medium", "service": "search-service", "type": "gc_overhead", "message": "search-service GC overhead >95% — spending almost all CPU time in garbage collection", "fired_at": "2024-11-22T10:40:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments": {
+      "query": "all deployments in the last 24 hours",
+      "response": {
+        "deployments": [
+          {
+            "id": "deploy-4848",
+            "service": "recommendation-service",
+            "version": "v2.1.0",
+            "previous_version": "v2.0.9",
+            "deployed_at": "2024-11-21T22:00:00Z",
+            "deployed_by": "ci-pipeline",
+            "status": "completed",
+            "change_summary": "Updated recommendation ML model weights to v2.1 — model-only update, no code changes"
+          }
+        ],
+        "note": "No deployments to search-service in the last 24 hours. Last search-service deploy (v6.3.0) was 3 days ago on 2024-11-19."
+      }
+    },
+    "log_analysis": {
+      "query": "error log patterns for all services, last 3 hours",
+      "response": {
+        "analysis_summary": "Classic memory leak detected in search-service. The QueryCacheManager.put() method is the top memory allocator, growing unboundedly without eviction. Sawtooth crash-restart-grow-crash pattern confirms a leak rather than a load spike. No correlation with any recent deployment — the only recent deploy was to recommendation-service which is healthy.",
+        "patterns": [
+          {"service": "search-service", "pattern": "OutOfMemoryError", "message_template": "java.lang.OutOfMemoryError: Java heap space at com.search.cache.QueryCacheManager.put(QueryCacheManager.java:142)", "count": 12, "first_seen": "2024-11-22T10:50:00Z", "severity": "FATAL"},
+          {"service": "search-service", "pattern": "GCOverhead", "message_template": "GC overhead limit exceeded: 98% time in GC, freed <2% heap. Top allocator: QueryCacheManager (4.2GB/4.5GB heap)", "count": 245, "first_seen": "2024-11-22T10:35:00Z", "severity": "ERROR"}
+        ],
+        "baseline_error_rate": "~40 errors/min",
+        "current_error_rate": "~1800 errors/min during OOM, drops after restart, climbs again"
+      }
+    }
+  },
+  "drifted_data": {
+    "alerts_misleading": {
+      "query": "all alerts in the last 3 hours",
+      "response": {
+        "alerts": [
+          {"id": "alert-10200", "severity": "high", "service": "search-service", "type": "memory_threshold_exceeded", "fired_at": "2024-11-22T10:45:00Z", "resolved_at": "2024-11-22T12:45:00Z", "status": "resolved"},
+          {"id": "alert-10201", "severity": "high", "service": "search-service", "type": "pod_oom_killed", "fired_at": "2024-11-22T10:52:00Z", "resolved_at": "2024-11-22T12:45:00Z", "status": "resolved"},
+          {"id": "alert-10210", "severity": "high", "service": "search-service", "type": "latency_threshold_exceeded", "message": "search-service p99 latency exceeded 5000ms after rollback deployment", "fired_at": "2024-11-22T12:50:00Z", "status": "firing"},
+          {"id": "alert-10211", "severity": "medium", "service": "recommendation-service", "type": "model_inference_slow", "message": "recommendation-service model inference latency elevated — possible model issue after v2.1 update", "fired_at": "2024-11-22T13:00:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments_misleading": {
+      "query": "all deployments in the last 24 hours",
+      "response": {
+        "deployments": [
+          {"id": "deploy-4860", "service": "search-service", "version": "v6.2.9", "previous_version": "v6.3.0", "deployed_at": "2024-11-22T12:30:00Z", "deployed_by": "oncall-engineer", "status": "completed", "change_summary": "ROLLBACK: Reverted search-service to v6.2.9"},
+          {"id": "deploy-4858", "service": "search-service", "version": "v6.3.0-hotfix1", "previous_version": "v6.3.0", "deployed_at": "2024-11-22T12:15:00Z", "deployed_by": "oncall-engineer", "status": "failed", "change_summary": "HOTFIX ATTEMPT: Increased heap size to 8GB — deployment failed during rolling update"},
+          {"id": "deploy-4848", "service": "recommendation-service", "version": "v2.1.0", "previous_version": "v2.0.9", "deployed_at": "2024-11-21T22:00:00Z", "deployed_by": "ci-pipeline", "status": "completed", "change_summary": "Updated recommendation ML model weights to v2.1 — includes new embedding dimensions"}
+        ],
+        "note": "Multiple recent deploys visible: a failed hotfix to search-service, a rollback, and a recommendation-service model update from last night."
+      }
+    },
+    "logs_misleading": {
+      "query": "error log patterns for all services, last 3 hours",
+      "response": {
+        "analysis_summary": "search-service showing instability after rollback deployment. Rollback may have introduced configuration inconsistencies. Additionally, recommendation-service showing elevated model inference times since v2.1 model update.",
+        "patterns": [
+          {"service": "search-service", "pattern": "ConfigInconsistency", "message_template": "Warning: search-service config version mismatch detected after rollback — cache settings from v6.3.0 persisted in shared state", "count": 450, "first_seen": "2024-11-22T12:35:00Z", "severity": "ERROR"},
+          {"service": "recommendation-service", "pattern": "SlowInference", "message_template": "Model inference slow: v2.1 model taking 3x longer than v2.0.9 on embedding computation", "count": 1200, "first_seen": "2024-11-22T12:55:00Z", "severity": "WARN"}
+        ],
+        "baseline_error_rate": "~40 errors/min",
+        "current_error_rate": "~380 errors/min, mixed errors across search and recommendation services"
+      }
+    },
+    "alerts_post_resolution": {
+      "query": "all alerts in the last 3 hours",
+      "response": {
+        "alerts": [
+          {"id": "alert-10200", "severity": "high", "service": "search-service", "type": "memory_threshold_exceeded", "fired_at": "2024-11-22T10:45:00Z", "resolved_at": "2024-11-22T12:45:00Z", "status": "resolved"},
+          {"id": "alert-10201", "severity": "high", "service": "search-service", "type": "pod_oom_killed", "fired_at": "2024-11-22T10:52:00Z", "resolved_at": "2024-11-22T12:45:00Z", "status": "resolved"},
+          {"id": "alert-10202", "severity": "medium", "service": "search-service", "type": "gc_overhead", "fired_at": "2024-11-22T10:40:00Z", "resolved_at": "2024-11-22T12:45:00Z", "status": "resolved"}
+        ]
+      }
+    },
+    "deployments_post_rollback": {
+      "query": "all deployments in the last 24 hours",
+      "response": {
+        "deployments": [
+          {
+            "id": "deploy-4860",
+            "service": "search-service",
+            "version": "v6.2.9",
+            "previous_version": "v6.3.0",
+            "deployed_at": "2024-11-22T12:30:00Z",
+            "deployed_by": "oncall-engineer",
+            "status": "completed",
+            "change_summary": "ROLLBACK: Reverted search-service to v6.2.9 to fix memory leak in QueryCacheManager"
+          },
+          {
+            "id": "deploy-4858",
+            "service": "search-service",
+            "version": "v6.3.0-hotfix1",
+            "previous_version": "v6.3.0",
+            "deployed_at": "2024-11-22T12:15:00Z",
+            "deployed_by": "oncall-engineer",
+            "status": "failed",
+            "change_summary": "HOTFIX ATTEMPT: Increased heap size to 8GB — did not resolve, memory still growing"
+          },
+          {
+            "id": "deploy-4848",
+            "service": "recommendation-service",
+            "version": "v2.1.0",
+            "previous_version": "v2.0.9",
+            "deployed_at": "2024-11-21T22:00:00Z",
+            "deployed_by": "ci-pipeline",
+            "status": "completed",
+            "change_summary": "Updated recommendation ML model weights to v2.1"
+          }
+        ]
+      }
+    },
+    "logs_pre_incident": {
+      "query": "error log patterns for all services, last 3 hours",
+      "response": {
+        "analysis_summary": "Normal operations. No anomalies detected in any service.",
+        "patterns": [],
+        "baseline_error_rate": "~40 errors/min",
+        "current_error_rate": "~42 errors/min, within normal range"
+      }
+    },
+    "log_analysis_different_reasoning": {
+      "query": "error log patterns for all services, last 3 hours",
+      "response": {
+        "analysis_summary": "Infrastructure capacity issue detected. The search-service JVM is running out of heap space under current query load. This appears to be a capacity planning issue — the service needs more memory to handle the current traffic volume, not a code defect.",
+        "patterns": [
+          {"service": "search-service", "pattern": "HeapExhaustion", "category": "infrastructure", "message_template": "JVM heap exhausted under load — application requires more memory for current query volume", "count": 12, "first_seen": "2024-11-22T10:50:00Z", "severity": "FATAL", "suggested_cause": "Insufficient heap allocation. Recommend scaling vertically (increase heap) or horizontally (add instances)."},
+          {"service": "search-service", "pattern": "CachePressure", "category": "infrastructure", "message_template": "Cache utilization at 100%, eviction rate cannot keep pace with growth", "count": 245, "first_seen": "2024-11-22T10:35:00Z", "severity": "ERROR", "suggested_cause": "Query cache sized too small for current traffic. Increase cache max size or add LRU eviction."}
+        ],
+        "baseline_error_rate": "~40 errors/min",
+        "current_error_rate": "~1800 errors/min, categorized as infrastructure capacity issues"
+      }
+    },
+    "alerts_new_schema": {
+      "query": "all alerts in the last 3 hours",
+      "response": {
+        "alerts": [
+          {"id": "alert-10200", "priority": "P1", "component": "search-service", "alert_type": "RESOURCE_SATURATION", "title": "search-service memory critical", "triggered_at": "2024-11-22T10:45:00Z", "state": "active", "escalation_level": 1},
+          {"id": "alert-10201", "priority": "P1", "component": "search-service", "alert_type": "CRASH_LOOP", "title": "search-service crash loop", "triggered_at": "2024-11-22T10:52:00Z", "state": "active", "escalation_level": 2},
+          {"id": "alert-10202", "priority": "P2", "component": "search-service", "alert_type": "PERFORMANCE_DEGRADED", "title": "search-service GC overhead", "triggered_at": "2024-11-22T10:40:00Z", "state": "active", "escalation_level": 0}
+        ]
+      }
+    }
+  },
+  "canary_metrics": {
+    "available": true,
+    "response": {
+      "canary_deployment": "deploy-4838 (search-service v6.3.0, deployed 2024-11-19)",
+      "comparison_window": "2024-11-19T14:00:00Z to 2024-11-19T16:00:00Z",
+      "canary_group": {"instance_count": 2, "memory_pct_trend": [60, 65, 71, 78, 85, 92], "p99_latency_ms_trend": [150, 165, 195, 280, 520, 1100], "oom_kills": 2},
+      "baseline_group": {"instance_count": 6, "memory_pct_trend": [58, 58, 59, 58, 59, 58], "p99_latency_ms_trend": [148, 150, 147, 152, 149, 151], "oom_kills": 0},
+      "verdict": "CANARY_FAILING",
+      "confidence": 0.97
+    }
+  }
+}

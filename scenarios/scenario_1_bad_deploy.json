@@ -1,0 +1,142 @@
+{
+  "id": "scenario_1",
+  "title": "Bad Config Deployment",
+  "ground_truth": {
+    "root_cause": "bad_deployment",
+    "description": "Deployment deploy-4821 pushed a misconfigured connection timeout (reduced from 5000ms to 50ms) to the payment-service, causing widespread request timeouts and a latency spike.",
+    "key_evidence": [
+      "Latency spike at 14:00 correlates with deploy-4821 at 13:50",
+      "payment-service error rate jumped from 0.1% to 34%",
+      "Logs show ConnectionTimeout errors in payment-service after 13:50",
+      "Alert SEV-HIGH fired at 14:05 for payment-service latency"
+    ]
+  },
+  "coherent_snapshot": {
+    "timestamp": "2024-11-15T14:10:00Z",
+    "metrics": {
+      "query": "latency and error rate for all services, last 60 minutes",
+      "response": {
+        "time_range": "2024-11-15T13:10:00Z to 2024-11-15T14:10:00Z",
+        "services": {
+          "payment-service": {
+            "p99_latency_ms": [120, 115, 125, 118, 122, 8500, 9200, 8800, 9100, 8750, 9300, 9050],
+            "error_rate_pct": [0.1, 0.1, 0.2, 0.1, 0.1, 12.5, 28.3, 34.1, 31.2, 33.8, 32.5, 30.1],
+            "request_count": [4500, 4600, 4550, 4480, 4520, 4510, 4490, 4530, 4500, 4480, 4520, 4510],
+            "timestamps": ["13:10", "13:15", "13:20", "13:25", "13:30", "13:35", "13:40", "13:45", "13:50", "13:55", "14:00", "14:05"]
+          },
+          "api-gateway": {
+            "p99_latency_ms": [45, 42, 48, 44, 43, 8600, 9300, 8900, 9200, 8850, 9400, 9150],
+            "error_rate_pct": [0.0, 0.0, 0.1, 0.0, 0.0, 11.8, 27.1, 33.2, 30.5, 32.9, 31.8, 29.4],
+            "request_count": [12000, 12100, 11950, 12050, 12000, 11980, 12020, 11990, 12010, 12000, 11970, 12030],
+            "timestamps": ["13:10", "13:15", "13:20", "13:25", "13:30", "13:35", "13:40", "13:45", "13:50", "13:55", "14:00", "14:05"]
+          },
+          "user-service": {
+            "p99_latency_ms": [35, 38, 36, 37, 35, 36, 38, 35, 37, 36, 35, 38],
+            "error_rate_pct": [0.0, 0.1, 0.0, 0.0, 0.1, 0.0, 0.1, 0.0, 0.0, 0.1, 0.0, 0.0],
+            "request_count": [8000, 8050, 7980, 8020, 8010, 7990, 8030, 8000, 8020, 7990, 8010, 8000],
+            "timestamps": ["13:10", "13:15", "13:20", "13:25", "13:30", "13:35", "13:40", "13:45", "13:50", "13:55", "14:00", "14:05"]
+          }
+        }
+      }
+    },
+    "alerts": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-9921", "severity": "high", "service": "payment-service", "type": "latency_threshold_exceeded", "message": "payment-service p99 latency exceeded 5000ms threshold", "fired_at": "2024-11-15T14:05:00Z", "status": "firing"},
+          {"id": "alert-9922", "severity": "high", "service": "api-gateway", "type": "error_rate_threshold_exceeded", "message": "api-gateway error rate exceeded 10% threshold", "fired_at": "2024-11-15T14:06:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments": {
+      "query": "all deployments in the last 2 hours",
+      "response": {
+        "deployments": [
+          {"id": "deploy-4821", "service": "payment-service", "version": "v2.14.3", "previous_version": "v2.14.2", "deployed_at": "2024-11-15T13:50:00Z", "deployed_by": "ci-pipeline", "status": "completed", "change_summary": "Updated service configuration and timeout settings"},
+          {"id": "deploy-4818", "service": "user-service", "version": "v3.8.1", "previous_version": "v3.8.0", "deployed_at": "2024-11-15T12:30:00Z", "deployed_by": "ci-pipeline", "status": "completed", "change_summary": "Added new user preferences endpoint"}
+        ]
+      }
+    },
+    "log_analysis": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Significant increase in error logs detected starting at approximately 13:52 UTC, concentrated in payment-service.",
+        "patterns": [
+          {"service": "payment-service", "pattern": "ConnectionTimeout", "message_template": "ConnectionTimeout: upstream connection timed out after 50ms (previously 5000ms)", "count": 15234, "first_seen": "2024-11-15T13:52:00Z", "severity": "ERROR"},
+          {"service": "api-gateway", "pattern": "UpstreamError", "message_template": "UpstreamError: payment-service returned 504 Gateway Timeout", "count": 14891, "first_seen": "2024-11-15T13:53:00Z", "severity": "ERROR"}
+        ],
+        "baseline_error_rate": "~50 errors/min across all services",
+        "current_error_rate": "~3200 errors/min, concentrated in payment-service and api-gateway"
+      }
+    }
+  },
+  "drifted_data": {
+    "alerts_misleading": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-9921", "severity": "high", "service": "payment-service", "type": "latency_threshold_exceeded", "message": "payment-service p99 latency exceeded 5000ms threshold", "fired_at": "2024-11-15T14:05:00Z", "resolved_at": "2024-11-15T14:32:00Z", "status": "resolved", "resolution_note": "Auto-resolved after rollback deploy-4823"},
+          {"id": "alert-9922", "severity": "high", "service": "api-gateway", "type": "error_rate_threshold_exceeded", "message": "api-gateway error rate exceeded 10% threshold", "fired_at": "2024-11-15T14:06:00Z", "resolved_at": "2024-11-15T14:33:00Z", "status": "resolved"},
+          {"id": "alert-9930", "severity": "high", "service": "payment-service", "type": "database_connection_timeout", "message": "payment-service database connections timing out — possible database overload", "fired_at": "2024-11-15T15:10:00Z", "status": "firing"}
+        ],
+        "note": "Stale alert data: includes resolved incident alerts AND a new unrelated database alert that fired an hour later"
+      }
+    },
+    "deployments_misleading": {
+      "query": "all deployments in the last 2 hours",
+      "response": {
+        "deployments": [
+          {"id": "deploy-4825", "service": "api-gateway", "version": "v8.2.0", "previous_version": "v8.1.9", "deployed_at": "2024-11-15T14:45:00Z", "deployed_by": "ci-pipeline", "status": "completed", "change_summary": "Updated rate limiting configuration and request routing rules"},
+          {"id": "deploy-4823", "service": "payment-service", "version": "v2.14.2", "previous_version": "v2.14.3", "deployed_at": "2024-11-15T14:25:00Z", "deployed_by": "oncall-engineer", "status": "completed", "change_summary": "ROLLBACK: Reverted to v2.14.2"},
+          {"id": "deploy-4821", "service": "payment-service", "version": "v2.14.3", "previous_version": "v2.14.2", "deployed_at": "2024-11-15T13:50:00Z", "deployed_by": "ci-pipeline", "status": "rolled_back", "change_summary": "Updated service configuration and timeout settings"}
+        ],
+        "note": "Post-rollback view: shows 3 deploys including rollback and a new api-gateway deploy. Agent may incorrectly attribute ongoing issues to the api-gateway deploy."
+      }
+    },
+    "logs_misleading": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Mixed error signals detected. Payment-service errors have subsided after rollback, but new database connectivity errors are emerging. API-gateway showing elevated error rates possibly related to recent routing configuration change.",
+        "patterns": [
+          {"service": "payment-service", "pattern": "DatabaseConnectionTimeout", "message_template": "DatabaseConnectionTimeout: could not connect to payments-db within 3000ms", "count": 342, "first_seen": "2024-11-15T15:08:00Z", "severity": "ERROR"},
+          {"service": "api-gateway", "pattern": "RoutingError", "message_template": "RoutingError: request routing to payment-service failed with 503, retrying", "count": 1205, "first_seen": "2024-11-15T14:48:00Z", "severity": "ERROR"}
+        ],
+        "baseline_error_rate": "~50 errors/min",
+        "current_error_rate": "~450 errors/min — mixed patterns from different time windows"
+      }
+    },
+    "log_analysis_different_reasoning": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Network-layer anomalies detected with connection management issues across the payment processing stack.",
+        "patterns": [
+          {"service": "payment-service", "pattern": "NetworkTimeout", "category": "network", "message_template": "Network timeout on outbound connection, socket closed after 50ms", "count": 15234, "first_seen": "2024-11-15T13:52:00Z", "severity": "ERROR", "suggested_cause": "Possible network configuration change or firewall rule update"},
+          {"service": "api-gateway", "pattern": "DownstreamUnavailable", "category": "network", "message_template": "Downstream service unavailable: payment-service not responding within SLA", "count": 14891, "first_seen": "2024-11-15T13:53:00Z", "severity": "ERROR", "suggested_cause": "Downstream service degradation, possibly network-related"}
+        ],
+        "baseline_error_rate": "~50 errors/min",
+        "current_error_rate": "~3200 errors/min, categorized as network-layer issues"
+      }
+    },
+    "alerts_new_schema": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-9921", "priority": "P1", "component": "svc:payment", "alert_type": "SLO_VIOLATION", "description": "SLO breach detected", "triggered_at": "2024-11-15T14:05:00Z", "state": "active", "escalation_level": 1},
+          {"id": "alert-9922", "priority": "P1", "component": "svc:gateway", "alert_type": "ERROR_BUDGET_BURN", "description": "Error budget burn rate critical", "triggered_at": "2024-11-15T14:06:00Z", "state": "active", "escalation_level": 1}
+        ],
+        "note": "New schema: service names abbreviated, no human-readable message field, no service-to-full-name mapping provided. Agent must infer which service is affected."
+      }
+    }
+  },
+  "canary_metrics": {
+    "available": true,
+    "response": {
+      "canary_deployment": "deploy-4821",
+      "comparison_window": "2024-11-15T13:50:00Z to 2024-11-15T14:10:00Z",
+      "canary_group": {"instance_count": 3, "p99_latency_ms": 8950, "error_rate_pct": 33.2, "request_count": 1200},
+      "baseline_group": {"instance_count": 9, "p99_latency_ms": 118, "error_rate_pct": 0.1, "request_count": 3300},
+      "verdict": "CANARY_FAILING",
+      "confidence": 0.99
+    }
+  }
+}

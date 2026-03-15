@@ -1,0 +1,116 @@
+{
+  "id": "scenario_3",
+  "title": "Upstream Dependency Timeout",
+  "ground_truth": {
+    "root_cause": "upstream_dependency",
+    "description": "Third-party payment gateway (stripe-api) started experiencing elevated latency, causing cascading timeouts in checkout-service. No internal change involved.",
+    "key_evidence": [
+      "checkout-service latency spike coincides with stripe-api latency increase",
+      "No internal deployments in the last 4 hours",
+      "Logs show ExternalAPITimeout: stripe-api errors",
+      "Only services calling stripe-api are affected"
+    ]
+  },
+  "coherent_snapshot": {
+    "timestamp": "2024-11-20T16:40:00Z",
+    "metrics": {
+      "query": "latency and error rate for all services, last 60 minutes",
+      "response": {
+        "time_range": "2024-11-20T15:40:00Z to 2024-11-20T16:40:00Z",
+        "services": {
+          "checkout-service": {
+            "p99_latency_ms": [200, 195, 210, 198, 205, 195, 202, 198, 3500, 8200, 9500, 9100],
+            "error_rate_pct": [0.2, 0.1, 0.2, 0.1, 0.2, 0.1, 0.1, 0.2, 15.3, 28.7, 31.2, 29.8],
+            "request_count": [2200, 2250, 2180, 2210, 2230, 2200, 2190, 2220, 2210, 2200, 2230, 2180],
+            "timestamps": ["15:40", "15:45", "15:50", "15:55", "16:00", "16:05", "16:10", "16:15", "16:20", "16:25", "16:30", "16:35"]
+          },
+          "cart-service": {
+            "p99_latency_ms": [55, 52, 58, 54, 53, 56, 52, 55, 54, 56, 53, 55],
+            "error_rate_pct": [0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1, 0.0],
+            "request_count": [5000, 5050, 4980, 5020, 5010, 4990, 5030, 5000, 5020, 4990, 5010, 5000],
+            "timestamps": ["15:40", "15:45", "15:50", "15:55", "16:00", "16:05", "16:10", "16:15", "16:20", "16:25", "16:30", "16:35"]
+          }
+        }
+      }
+    },
+    "alerts": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10120", "severity": "high", "service": "checkout-service", "type": "latency_threshold_exceeded", "message": "checkout-service p99 latency exceeded 3000ms threshold", "fired_at": "2024-11-20T16:22:00Z", "status": "firing"},
+          {"id": "alert-10121", "severity": "medium", "service": "checkout-service", "type": "external_dependency_degraded", "message": "External dependency stripe-api response time degraded (p99 > 8000ms)", "fired_at": "2024-11-20T16:21:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments": {
+      "query": "all deployments in the last 4 hours",
+      "response": {"deployments": []}
+    },
+    "log_analysis": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "External API timeout errors detected in checkout-service starting at 16:18 UTC. All errors trace to calls to the stripe-api payment gateway.",
+        "patterns": [
+          {"service": "checkout-service", "pattern": "ExternalAPITimeout", "message_template": "ExternalAPITimeout: stripe-api request timed out after 10000ms", "count": 8920, "first_seen": "2024-11-20T16:18:00Z", "severity": "ERROR"},
+          {"service": "checkout-service", "pattern": "CircuitBreakerOpen", "message_template": "CircuitBreaker OPEN for stripe-api: failure rate 45% exceeds 30% threshold", "count": 340, "first_seen": "2024-11-20T16:25:00Z", "severity": "WARN"}
+        ],
+        "baseline_error_rate": "~20 errors/min",
+        "current_error_rate": "~2100 errors/min, all related to stripe-api calls"
+      }
+    }
+  },
+  "drifted_data": {
+    "alerts_misleading": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10120", "severity": "high", "service": "checkout-service", "type": "latency_threshold_exceeded", "fired_at": "2024-11-20T16:22:00Z", "resolved_at": "2024-11-20T17:15:00Z", "status": "resolved"},
+          {"id": "alert-10121", "severity": "medium", "service": "checkout-service", "type": "external_dependency_degraded", "fired_at": "2024-11-20T16:21:00Z", "resolved_at": "2024-11-20T17:10:00Z", "status": "resolved"},
+          {"id": "alert-10130", "severity": "high", "service": "checkout-service", "type": "memory_threshold_exceeded", "message": "checkout-service memory utilization exceeded 85% — possible memory pressure after fallback activation", "fired_at": "2024-11-20T17:30:00Z", "status": "firing"}
+        ]
+      }
+    },
+    "deployments_misleading": {
+      "query": "all deployments in the last 4 hours",
+      "response": {
+        "deployments": [
+          {"id": "deploy-4835", "service": "checkout-service", "version": "v5.1.1-hotfix", "previous_version": "v5.1.1", "deployed_at": "2024-11-20T16:50:00Z", "deployed_by": "oncall-engineer", "status": "completed", "change_summary": "HOTFIX: Increased stripe-api timeout to 30s, enabled fallback payment processor, added request buffering"},
+          {"id": "deploy-4836", "service": "checkout-service", "version": "v5.1.2", "previous_version": "v5.1.1-hotfix", "deployed_at": "2024-11-20T17:20:00Z", "deployed_by": "oncall-engineer", "status": "completed", "change_summary": "Follow-up: adjusted memory limits for fallback processor, updated circuit breaker thresholds"}
+        ]
+      }
+    },
+    "logs_misleading": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Checkout-service showing memory pressure and configuration issues after two rapid deployments. The fallback payment processor is consuming more memory than expected.",
+        "patterns": [
+          {"service": "checkout-service", "pattern": "FallbackProcessorOOM", "message_template": "FallbackPaymentProcessor: memory allocation failed, request buffering consuming excessive heap", "count": 2400, "first_seen": "2024-11-20T17:25:00Z", "severity": "ERROR"},
+          {"service": "checkout-service", "pattern": "ConfigMismatch", "message_template": "CircuitBreaker config mismatch: thresholds updated in v5.1.2 but fallback still using v5.1.1-hotfix values", "count": 890, "first_seen": "2024-11-20T17:22:00Z", "severity": "WARN"}
+        ],
+        "baseline_error_rate": "~20 errors/min",
+        "current_error_rate": "~520 errors/min, related to hotfix configuration issues"
+      }
+    },
+    "log_analysis_different_reasoning": {
+      "query": "error log patterns for all services, last 60 minutes",
+      "response": {
+        "analysis_summary": "Timeout pattern detected in checkout-service outbound connections. Network-layer analysis suggests possible connectivity or routing issue to external endpoints.",
+        "patterns": [
+          {"service": "checkout-service", "pattern": "OutboundTimeout", "category": "network", "message_template": "Outbound connection timeout to external endpoint (10000ms)", "count": 8920, "first_seen": "2024-11-20T16:18:00Z", "severity": "ERROR", "suggested_cause": "Network routing change or external endpoint degradation"}
+        ],
+        "baseline_error_rate": "~20 errors/min",
+        "current_error_rate": "~2100 errors/min, categorized as network-layer timeout issues"
+      }
+    },
+    "alerts_new_schema": {
+      "query": "all alerts in the last 60 minutes",
+      "response": {
+        "alerts": [
+          {"id": "alert-10120", "priority": "P1", "component": "svc:checkout", "alert_type": "SLO_VIOLATION", "description": "SLO breach detected", "triggered_at": "2024-11-20T16:22:00Z", "state": "active", "escalation_level": 1},
+          {"id": "alert-10121", "priority": "P2", "component": "ext:payments", "alert_type": "DEPENDENCY_DEGRADED", "description": "External dependency degraded", "triggered_at": "2024-11-20T16:21:00Z", "state": "active", "escalation_level": 0}
+        ]
+      }
+    }
+  },
+  "canary_metrics": {"available": false}
+}
